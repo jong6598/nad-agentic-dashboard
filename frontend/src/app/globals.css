@@ -113,3 +113,71 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: oklch(0.40 0.08 280);
 }
+
+/* ============================================================
+   HoloCard — Holographic 3D Card Styles
+   ============================================================ */
+
+@keyframes holo-shimmer-sweep {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Mobile (touch devices): disable 3D transforms, show static shimmer */
+@media (pointer: coarse) {
+  .holo-card {
+    transform: none !important;
+  }
+
+  .holo-card-shimmer {
+    background: linear-gradient(
+      135deg,
+      oklch(0.75 0.2 0 / 0.15),
+      oklch(0.75 0.2 60 / 0.15),
+      oklch(0.75 0.2 120 / 0.15),
+      oklch(0.75 0.2 180 / 0.15),
+      oklch(0.75 0.2 240 / 0.15),
+      oklch(0.75 0.2 300 / 0.15),
+      oklch(0.75 0.2 360 / 0.15)
+    ) !important;
+    background-size: 400% 400% !important;
+    animation: holo-shimmer-sweep 6s ease-in-out infinite !important;
+    mix-blend-mode: color-dodge !important;
+    opacity: 0.15 !important;
+  }
+}
+
+/* Reduced motion: disable all transforms + animations */
+@media (prefers-reduced-motion: reduce) {
+  .holo-card {
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .holo-card-shimmer {
+    animation: none !important;
+    background: linear-gradient(
+      135deg,
+      oklch(0.75 0.2 60 / 0.08),
+      oklch(0.75 0.2 180 / 0.08),
+      oklch(0.75 0.2 300 / 0.08)
+    ) !important;
+    mix-blend-mode: color-dodge !important;
+    opacity: 0.1 !important;
+  }
+
+  .holo-card-glow {
+    opacity: 0 !important;
+  }
+
+  .holo-card-shimmer-secondary {
+    opacity: 0 !important;
+  }
+}
