@@ -1,0 +1,18 @@
+# Documentation Directory
+
+## Purpose
+Central repository for all NAD-8004 Dashboard project documentation.
+
+## Contents
+- Architecture and design documents
+- API specifications
+- Development and deployment guides
+- Best practices and conventions
+
+## Format
+All documentation is written in Markdown (.md) format for easy version control and readability.
+
+## Target Audience
+- Developers working on the project
+- DevOps teams handling deployment
+- Stakeholders reviewing project architecture

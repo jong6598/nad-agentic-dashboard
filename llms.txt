@@ -1,0 +1,26 @@
+# NAD-8004 Dashboard
+
+## Project Type
+Full-stack hackathon project
+
+## Components
+- Frontend: Web dashboard interface
+- Backend: API and data services
+- Docs: Project documentation
+
+## Tech Stack
+TBD (to be determined based on project requirements)
+
+## Repository Information
+- Owner: jong6598
+- Email: jong6598@naver.com
+- Remote: git@github.com:jong6598/nad-agentic-dashboard.git
+
+## Important Notes
+- Uses repo-specific SSH key authentication
+- Git config is local (not global)
+- All SSH keys are gitignored
+- Project is organized into three main directories: docs/, frontend/, backend/
+
+## Development Setup
+Each component has its own README with specific setup instructions.

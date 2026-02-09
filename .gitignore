@@ -1,0 +1,25 @@
+# SSH Keys - DO NOT COMMIT
+.ssh/
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+*.log
