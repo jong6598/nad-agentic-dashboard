@@ -6,6 +6,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 mod api;
 mod db;
+mod indexer;
 mod types;
 
 #[derive(Clone)]
@@ -46,7 +47,9 @@ async fn main() {
     tracing::info!("Migrations applied successfully");
 
     // Build application state
-    let state = AppState { pool };
+    let state = AppState {
+        pool: pool.clone(),
+    };
 
     // Set up CORS (allow all origins for development)
     let cors = CorsLayer::new()
@@ -69,6 +72,14 @@ async fn main() {
 
     tracing::info!("Server listening on 0.0.0.0:3001");
 
+    // Spawn the indexer loop as a background task
+    let indexer_pool = pool.clone();
+    tokio::spawn(async move {
+        tracing::info!("Indexer background task started");
+        indexer::run_indexer(indexer_pool).await;
+    });
+
+    // Run the API server (blocks until shutdown)
     axum::serve(listener, app)
         .await
         .expect("Server failed");
