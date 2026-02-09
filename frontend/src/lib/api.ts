@@ -1,5 +1,4 @@
 import type {
-  Agent,
   AgentDetail,
   AgentFilters,
   AgentsResponse,

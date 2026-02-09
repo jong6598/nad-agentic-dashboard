@@ -285,7 +285,6 @@ export default function CreateMoltPage() {
   const {
     isLoading: isConfirming,
     isSuccess: isConfirmed,
-    data: receipt,
   } = useWaitForTransactionReceipt({
     hash: txHash,
   })
