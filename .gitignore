@@ -23,3 +23,10 @@ Thumbs.db
 dist/
 build/
 *.log
+
+# Session logs
+.session/
+
+# Other agent IDEs (not used)
+.cursor/
+.windsurf/

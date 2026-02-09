@@ -1,10 +1,14 @@
 {
-  "permissions": {
-    "allow": [
-      "Bash(git checkout:*)"
-    ]
-  },
   "env": {
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git checkout:*)",
+      "Bash(npx skills add:*)",
+      "Bash(npx -y skills add:*)",
+      "Bash(git -C /Users/hugo/dev/hackathon/nad-8004-dashboard status)",
+      "Bash(git -C /Users/hugo/dev/hackathon/nad-8004-dashboard diff)"
+    ]
   }
 }
