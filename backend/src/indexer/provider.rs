@@ -1,6 +1,5 @@
 use alloy::primitives::Address;
-use alloy::providers::{Provider, ProviderBuilder, RootProvider};
-use alloy::transports::http::{Client, Http};
+use alloy::providers::{Provider, ProviderBuilder};
 
 /// Configuration for a single chain to index.
 #[derive(Debug, Clone)]
@@ -11,13 +10,29 @@ pub struct ChainConfig {
     pub reputation_address: Address,
 }
 
-/// The alloy HTTP provider type used throughout the indexer.
-pub type HttpProvider = RootProvider<Http<Client>>;
+/// The alloy HTTP provider type returned by ProviderBuilder::new().connect_http().
+/// In alloy v1, this is a FillProvider wrapping a RootProvider with default fillers.
+pub type HttpProvider = alloy::providers::fillers::FillProvider<
+    alloy::providers::fillers::JoinFill<
+        alloy::providers::Identity,
+        alloy::providers::fillers::JoinFill<
+            alloy::providers::fillers::GasFiller,
+            alloy::providers::fillers::JoinFill<
+                alloy::providers::fillers::BlobGasFiller,
+                alloy::providers::fillers::JoinFill<
+                    alloy::providers::fillers::NonceFiller,
+                    alloy::providers::fillers::ChainIdFiller,
+                >,
+            >,
+        >,
+    >,
+    alloy::providers::RootProvider,
+>;
 
 /// Create an alloy HTTP provider for the given chain config.
 pub fn create_provider(config: &ChainConfig) -> Result<HttpProvider, Box<dyn std::error::Error>> {
     let url = config.rpc_url.parse()?;
-    let provider = ProviderBuilder::new().on_http(url);
+    let provider = ProviderBuilder::new().connect_http(url);
     Ok(provider)
 }
 

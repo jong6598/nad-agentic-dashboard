@@ -7,7 +7,7 @@ use provider::ChainConfig;
 use sqlx::PgPool;
 
 /// Block batch size per eth_getLogs call to avoid RPC limits.
-pub const BLOCK_BATCH_SIZE: u64 = 1000;
+pub const BLOCK_BATCH_SIZE: u64 = 100;
 
 /// Poll interval between indexer cycles (in seconds).
 pub const POLL_INTERVAL_SECS: u64 = 2;

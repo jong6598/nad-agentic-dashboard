@@ -62,7 +62,7 @@ pub async fn fetch_and_update_metadata(pool: &PgPool, agent_id: i64, chain_id: i
 }
 
 /// HTTP GET the agent URI and parse the response as EIP-8004 metadata JSON.
-async fn fetch_metadata(uri: &str) -> Result<AgentUriMetadata, Box<dyn std::error::Error>> {
+async fn fetch_metadata(uri: &str) -> Result<AgentUriMetadata, Box<dyn std::error::Error + Send + Sync>> {
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))
         .build()?;

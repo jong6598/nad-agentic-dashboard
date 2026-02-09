@@ -8,8 +8,8 @@ use axum::{
 
 use crate::db;
 use crate::types::{
-    ActivityParams, ActivityResponse, AgentDetailResponse, AgentListParams, AgentListResponse,
-    ErrorResponse, ReputationParams, ReputationResponse,
+    ActivityParams, ActivityResponse, AgentListParams, AgentListResponse, ErrorResponse,
+    ReputationParams, ReputationResponse,
 };
 use crate::AppState;
 
