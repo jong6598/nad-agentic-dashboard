@@ -236,7 +236,7 @@ export default function AgentDetailPage({
           <RatingChart agentId={agentNumericId} chainId={chainId} />
 
           {/* Activity Tabs */}
-          <Tabs defaultValue="identity" className="w-full">
+          <Tabs defaultValue="reputation" className="w-full">
             <TabsList className="w-full justify-start">
               <TabsTrigger value="identity" className="gap-1.5">
                 Identity

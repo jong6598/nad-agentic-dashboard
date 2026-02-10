@@ -165,8 +165,7 @@ export function RatingChart({ agentId, chainId }: RatingChartProps) {
                 dy={8}
               />
               <YAxis
-                domain={[0, 5]}
-                ticks={[0, 1, 2, 3, 4, 5]}
+                domain={['auto', 'auto']}
                 stroke="oklch(0.50 0.02 280)"
                 fontSize={11}
                 tickLine={false}

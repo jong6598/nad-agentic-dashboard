@@ -13,8 +13,8 @@ interface AgentCardProps {
 }
 
 function getScoreColor(score: number): string {
-  if (score >= 4) return 'text-green-400'
-  if (score >= 3) return 'text-yellow-400'
+  if (score >= 70) return 'text-green-400'
+  if (score >= 40) return 'text-yellow-400'
   return 'text-red-400'
 }
 
