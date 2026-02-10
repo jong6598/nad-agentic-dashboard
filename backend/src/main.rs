@@ -65,12 +65,14 @@ async fn main() {
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 
-    // Start server
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3001")
+    // Start server (Railway injects PORT env var)
+    let port = std::env::var("PORT").unwrap_or_else(|_| "3001".to_string());
+    let addr = format!("0.0.0.0:{port}");
+    let listener = tokio::net::TcpListener::bind(&addr)
         .await
-        .expect("Failed to bind to port 3001");
+        .expect("Failed to bind to port");
 
-    tracing::info!("Server listening on 0.0.0.0:3001");
+    tracing::info!("Server listening on {addr}");
 
     // Spawn the indexer loop as a background task
     let indexer_pool = pool.clone();
