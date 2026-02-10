@@ -14,7 +14,7 @@ pub async fn get_activities(
     let activities: Vec<Activity> = sqlx::query_as(
         r#"
         SELECT id, agent_id, chain_id, event_type, event_data,
-               block_number, tx_hash, log_index, created_at
+               block_number, block_timestamp, tx_hash, log_index, created_at
         FROM activity_log
         WHERE agent_id = $1 AND chain_id = $2
           AND ($3::TEXT IS NULL OR event_type = $3)
@@ -51,8 +51,8 @@ pub async fn get_activities(
 pub async fn insert_activity(pool: &PgPool, activity: &NewActivity) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
-        INSERT INTO activity_log (agent_id, chain_id, event_type, event_data, block_number, tx_hash, log_index)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO activity_log (agent_id, chain_id, event_type, event_data, block_number, block_timestamp, tx_hash, log_index)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         "#,
     )
     .bind(activity.agent_id)
@@ -60,6 +60,7 @@ pub async fn insert_activity(pool: &PgPool, activity: &NewActivity) -> Result<()
     .bind(&activity.event_type)
     .bind(&activity.event_data)
     .bind(activity.block_number)
+    .bind(activity.block_timestamp)
     .bind(&activity.tx_hash)
     .bind(activity.log_index)
     .execute(pool)

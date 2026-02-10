@@ -22,7 +22,7 @@ pub async fn get_feedbacks_for_agent(
             r#"
             SELECT id, agent_id, chain_id, client_address, feedback_index,
                    value, value_decimals, tag1, tag2, endpoint, feedback_uri,
-                   feedback_hash, revoked, block_number, tx_hash, created_at
+                   feedback_hash, revoked, block_number, block_timestamp, tx_hash, created_at
             FROM feedbacks
             WHERE agent_id = $1 AND chain_id = $2
               AND created_at >= NOW() - INTERVAL '{}'
@@ -40,7 +40,7 @@ pub async fn get_feedbacks_for_agent(
             r#"
             SELECT id, agent_id, chain_id, client_address, feedback_index,
                    value, value_decimals, tag1, tag2, endpoint, feedback_uri,
-                   feedback_hash, revoked, block_number, tx_hash, created_at
+                   feedback_hash, revoked, block_number, block_timestamp, tx_hash, created_at
             FROM feedbacks
             WHERE agent_id = $1 AND chain_id = $2
             ORDER BY created_at DESC
@@ -115,8 +115,8 @@ pub async fn get_reputation_history(
 pub async fn insert_feedback(pool: &PgPool, feedback: &NewFeedback) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
-        INSERT INTO feedbacks (agent_id, chain_id, client_address, feedback_index, value, value_decimals, tag1, tag2, endpoint, feedback_uri, feedback_hash, block_number, tx_hash)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        INSERT INTO feedbacks (agent_id, chain_id, client_address, feedback_index, value, value_decimals, tag1, tag2, endpoint, feedback_uri, feedback_hash, block_number, block_timestamp, tx_hash)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         "#,
     )
     .bind(feedback.agent_id)
@@ -131,6 +131,7 @@ pub async fn insert_feedback(pool: &PgPool, feedback: &NewFeedback) -> Result<()
     .bind(&feedback.feedback_uri)
     .bind(&feedback.feedback_hash)
     .bind(feedback.block_number)
+    .bind(feedback.block_timestamp)
     .bind(&feedback.tx_hash)
     .execute(pool)
     .await?;

@@ -1,5 +1,7 @@
+use alloy::eips::BlockNumberOrTag;
 use alloy::primitives::Address;
 use alloy::providers::{Provider, ProviderBuilder};
+use chrono::{DateTime, Utc};
 
 /// Configuration for a single chain to index.
 #[derive(Debug, Clone)]
@@ -42,6 +44,22 @@ pub fn create_provider(config: &ChainConfig) -> Result<HttpProvider, Box<dyn std
 pub async fn get_latest_block(provider: &HttpProvider) -> Result<u64, Box<dyn std::error::Error>> {
     let block_number = provider.get_block_number().await?;
     Ok(block_number)
+}
+
+/// Get the timestamp of a specific block from the RPC provider.
+/// Returns the block's timestamp as a `DateTime<Utc>`.
+pub async fn get_block_timestamp(
+    provider: &HttpProvider,
+    block_number: u64,
+) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
+    let block = provider
+        .get_block_by_number(BlockNumberOrTag::Number(block_number))
+        .await?
+        .ok_or_else(|| format!("Block {} not found", block_number))?;
+    let ts = block.header.timestamp;
+    let dt = DateTime::<Utc>::from_timestamp(ts as i64, 0)
+        .unwrap_or_default();
+    Ok(dt)
 }
 
 /// Build all chain configs from environment variables with fallback defaults.

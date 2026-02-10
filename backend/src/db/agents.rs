@@ -122,8 +122,8 @@ pub async fn get_agent_by_id(
 pub async fn upsert_agent(pool: &PgPool, agent: &NewAgent) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
-        INSERT INTO agents (agent_id, chain_id, owner, uri, metadata, name, description, image, categories, x402_support, active, block_number, tx_hash)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        INSERT INTO agents (agent_id, chain_id, owner, uri, metadata, name, description, image, categories, x402_support, active, block_number, block_timestamp, tx_hash)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         ON CONFLICT (agent_id, chain_id) DO UPDATE SET
             owner = EXCLUDED.owner,
             uri = COALESCE(EXCLUDED.uri, agents.uri),
@@ -135,6 +135,7 @@ pub async fn upsert_agent(pool: &PgPool, agent: &NewAgent) -> Result<(), sqlx::E
             x402_support = EXCLUDED.x402_support,
             active = EXCLUDED.active,
             block_number = EXCLUDED.block_number,
+            block_timestamp = COALESCE(EXCLUDED.block_timestamp, agents.block_timestamp),
             tx_hash = EXCLUDED.tx_hash,
             updated_at = NOW()
         "#,
@@ -151,6 +152,7 @@ pub async fn upsert_agent(pool: &PgPool, agent: &NewAgent) -> Result<(), sqlx::E
     .bind(agent.x402_support)
     .bind(agent.active)
     .bind(agent.block_number)
+    .bind(agent.block_timestamp)
     .bind(&agent.tx_hash)
     .execute(pool)
     .await?;

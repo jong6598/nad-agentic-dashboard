@@ -1,11 +1,14 @@
+use std::collections::HashMap;
+
 use alloy::providers::Provider;
 use alloy::rpc::types::Filter;
 use alloy::sol;
 use alloy::sol_types::SolEvent;
+use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 
 use super::metadata;
-use super::provider::{ChainConfig, HttpProvider};
+use super::provider::{self, ChainConfig, HttpProvider};
 use crate::db;
 use crate::types::{NewActivity, NewAgent};
 
@@ -43,13 +46,33 @@ pub async fn index_identity_events(
         to_block
     );
 
+    // Cache block timestamps to avoid duplicate RPC calls for the same block
+    let mut block_ts_cache: HashMap<u64, DateTime<Utc>> = HashMap::new();
+
     for log in logs {
-        let block_number = log.block_number.unwrap_or(0) as i64;
+        let block_num_raw = log.block_number.unwrap_or(0);
+        let block_number = block_num_raw as i64;
         let tx_hash = log
             .transaction_hash
             .map(|h| format!("{:#x}", h))
             .unwrap_or_default();
         let log_index = log.log_index.unwrap_or(0) as i32;
+
+        // Fetch block timestamp (cached per block)
+        let block_timestamp = if let Some(ts) = block_ts_cache.get(&block_num_raw) {
+            Some(*ts)
+        } else {
+            match provider::get_block_timestamp(provider, block_num_raw).await {
+                Ok(ts) => {
+                    block_ts_cache.insert(block_num_raw, ts);
+                    Some(ts)
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to fetch timestamp for block {}: {:?}", block_num_raw, e);
+                    None
+                }
+            }
+        };
 
         // Determine event type by matching topic0
         let topic0 = match log.topic0() {
@@ -90,6 +113,7 @@ pub async fn index_identity_events(
                         x402_support: false,
                         active: true,
                         block_number: Some(block_number),
+                        block_timestamp,
                         tx_hash: Some(tx_hash.clone()),
                     };
                     if let Err(e) = db::agents::upsert_agent(pool, &new_agent).await {
@@ -106,6 +130,7 @@ pub async fn index_identity_events(
                             "uri": uri,
                         })),
                         block_number,
+                        block_timestamp,
                         tx_hash: tx_hash.clone(),
                         log_index,
                     };
@@ -166,6 +191,7 @@ pub async fn index_identity_events(
                         x402_support: false,
                         active: true,
                         block_number: Some(block_number),
+                        block_timestamp,
                         tx_hash: Some(tx_hash.clone()),
                     };
                     if let Err(e) = db::agents::upsert_agent(pool, &update_agent).await {
@@ -182,6 +208,7 @@ pub async fn index_identity_events(
                             "updated_by": updated_by,
                         })),
                         block_number,
+                        block_timestamp,
                         tx_hash: tx_hash.clone(),
                         log_index,
                     };
@@ -248,6 +275,7 @@ pub async fn index_identity_events(
                             "value": value,
                         })),
                         block_number,
+                        block_timestamp,
                         tx_hash: tx_hash.clone(),
                         log_index,
                     };

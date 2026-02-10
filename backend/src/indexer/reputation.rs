@@ -1,12 +1,15 @@
+use std::collections::HashMap;
+use std::str::FromStr;
+
 use alloy::providers::Provider;
 use alloy::rpc::types::Filter;
 use alloy::sol;
 use alloy::sol_types::SolEvent;
 use bigdecimal::BigDecimal;
+use chrono::{DateTime, Utc};
 use sqlx::PgPool;
-use std::str::FromStr;
 
-use super::provider::{ChainConfig, HttpProvider};
+use super::provider::{self, ChainConfig, HttpProvider};
 use crate::db;
 use crate::types::{NewActivity, NewFeedback as NewFeedbackDb};
 
@@ -45,13 +48,33 @@ pub async fn index_reputation_events(
         to_block
     );
 
+    // Cache block timestamps to avoid duplicate RPC calls for the same block
+    let mut block_ts_cache: HashMap<u64, DateTime<Utc>> = HashMap::new();
+
     for log in logs {
-        let block_number = log.block_number.unwrap_or(0) as i64;
+        let block_num_raw = log.block_number.unwrap_or(0);
+        let block_number = block_num_raw as i64;
         let tx_hash = log
             .transaction_hash
             .map(|h| format!("{:#x}", h))
             .unwrap_or_default();
         let log_index = log.log_index.unwrap_or(0) as i32;
+
+        // Fetch block timestamp (cached per block)
+        let block_timestamp = if let Some(ts) = block_ts_cache.get(&block_num_raw) {
+            Some(*ts)
+        } else {
+            match provider::get_block_timestamp(provider, block_num_raw).await {
+                Ok(ts) => {
+                    block_ts_cache.insert(block_num_raw, ts);
+                    Some(ts)
+                }
+                Err(e) => {
+                    tracing::warn!("Failed to fetch timestamp for block {}: {:?}", block_num_raw, e);
+                    None
+                }
+            }
+        };
 
         let topic0 = match log.topic0() {
             Some(t) => *t,
@@ -122,6 +145,7 @@ pub async fn index_reputation_events(
                         },
                         feedback_hash: Some(feedback_hash.clone()),
                         block_number,
+                        block_timestamp,
                         tx_hash: tx_hash.clone(),
                     };
                     if let Err(e) = db::feedbacks::insert_feedback(pool, &new_feedback).await {
@@ -146,6 +170,7 @@ pub async fn index_reputation_events(
                             "feedback_uri": feedback_uri,
                         })),
                         block_number,
+                        block_timestamp,
                         tx_hash: tx_hash.clone(),
                         log_index,
                     };
@@ -204,6 +229,7 @@ pub async fn index_reputation_events(
                             "feedback_index": feedback_index,
                         })),
                         block_number,
+                        block_timestamp,
                         tx_hash: tx_hash.clone(),
                         log_index,
                     };
@@ -246,6 +272,7 @@ pub async fn index_reputation_events(
                         chain.chain_id,
                         &response_uri,
                         block_number,
+                        block_timestamp,
                         &tx_hash,
                     )
                     .await
@@ -270,6 +297,7 @@ pub async fn index_reputation_events(
                             "response_hash": response_hash,
                         })),
                         block_number,
+                        block_timestamp,
                         tx_hash: tx_hash.clone(),
                         log_index,
                     };
@@ -299,12 +327,13 @@ async fn insert_feedback_response(
     chain_id: i32,
     response_uri: &str,
     block_number: i64,
+    block_timestamp: Option<DateTime<Utc>>,
     tx_hash: &str,
 ) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
-        INSERT INTO feedback_responses (feedback_id, agent_id, chain_id, response_uri, block_number, tx_hash)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO feedback_responses (feedback_id, agent_id, chain_id, response_uri, block_number, block_timestamp, tx_hash)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         "#,
     )
     .bind(feedback_index)
@@ -312,6 +341,7 @@ async fn insert_feedback_response(
     .bind(chain_id)
     .bind(response_uri)
     .bind(block_number)
+    .bind(block_timestamp)
     .bind(tx_hash)
     .execute(pool)
     .await?;

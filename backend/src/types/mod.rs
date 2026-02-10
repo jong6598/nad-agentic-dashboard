@@ -21,6 +21,7 @@ pub struct Agent {
     pub x402_support: Option<bool>,
     pub active: Option<bool>,
     pub block_number: Option<i64>,
+    pub block_timestamp: Option<DateTime<Utc>>,
     pub tx_hash: Option<String>,
     pub created_at: Option<DateTime<Utc>>,
     pub updated_at: Option<DateTime<Utc>>,
@@ -55,6 +56,7 @@ pub struct Feedback {
     pub feedback_hash: Option<String>,
     pub revoked: Option<bool>,
     pub block_number: i64,
+    pub block_timestamp: Option<DateTime<Utc>>,
     pub tx_hash: String,
     pub created_at: Option<DateTime<Utc>>,
 }
@@ -67,6 +69,7 @@ pub struct FeedbackResponse {
     pub chain_id: i32,
     pub response_uri: Option<String>,
     pub block_number: i64,
+    pub block_timestamp: Option<DateTime<Utc>>,
     pub tx_hash: String,
     pub created_at: Option<DateTime<Utc>>,
 }
@@ -79,6 +82,7 @@ pub struct Activity {
     pub event_type: String,
     pub event_data: Option<serde_json::Value>,
     pub block_number: i64,
+    pub block_timestamp: Option<DateTime<Utc>>,
     pub tx_hash: String,
     pub log_index: i32,
     pub created_at: Option<DateTime<Utc>>,
@@ -316,6 +320,7 @@ pub struct NewAgent {
     pub x402_support: bool,
     pub active: bool,
     pub block_number: Option<i64>,
+    pub block_timestamp: Option<DateTime<Utc>>,
     pub tx_hash: Option<String>,
 }
 
@@ -333,6 +338,7 @@ pub struct NewFeedback {
     pub feedback_uri: Option<String>,
     pub feedback_hash: Option<String>,
     pub block_number: i64,
+    pub block_timestamp: Option<DateTime<Utc>>,
     pub tx_hash: String,
 }
 
@@ -343,6 +349,7 @@ pub struct NewActivity {
     pub event_type: String,
     pub event_data: Option<serde_json::Value>,
     pub block_number: i64,
+    pub block_timestamp: Option<DateTime<Utc>>,
     pub tx_hash: String,
     pub log_index: i32,
 }
