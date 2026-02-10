@@ -34,7 +34,7 @@ export function AgentCard({ agent }: AgentCardProps) {
           {/* Top row: Avatar + Name + Description */}
           <div className="flex items-start gap-3">
             <Avatar className="size-12 shrink-0 ring-2 ring-border">
-              <AvatarImage src={agent.image} alt={agent.name} />
+              <AvatarImage src={agent.image ?? undefined} alt={agent.name ?? undefined} />
               <AvatarFallback className="bg-primary/20 text-primary text-sm font-semibold">
                 {agent.name?.charAt(0)?.toUpperCase() || '?'}
               </AvatarFallback>
@@ -74,9 +74,9 @@ export function AgentCard({ agent }: AgentCardProps) {
             <div className="flex items-center gap-3">
               {/* Reputation score */}
               <div className="flex items-center gap-1">
-                <Star className={cn('size-3.5', getScoreColor(agent.reputation_score))} />
-                <span className={cn('text-sm font-semibold', getScoreColor(agent.reputation_score))}>
-                  {agent.reputation_score.toFixed(1)}
+                <Star className={cn('size-3.5', getScoreColor(agent.reputation_score ?? 0))} />
+                <span className={cn('text-sm font-semibold', getScoreColor(agent.reputation_score ?? 0))}>
+                  {(agent.reputation_score ?? 0).toFixed(1)}
                 </span>
               </div>
               {/* Feedback count */}

@@ -92,7 +92,7 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
                 <td className="px-4 py-3">
                   <Link href={agentPath} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                     <Avatar className="size-9 ring-1 ring-border">
-                      <AvatarImage src={entry.image} alt={entry.name} />
+                      <AvatarImage src={entry.image ?? undefined} alt={entry.name ?? undefined} />
                       <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
                         {entry.name?.charAt(0)?.toUpperCase() || '?'}
                       </AvatarFallback>
@@ -131,16 +131,16 @@ export function LeaderboardTable({ entries }: LeaderboardTableProps) {
                 {/* Score */}
                 <td className="px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <Star className={cn('size-3.5', getScoreColor(entry.reputation_score))} />
-                    <span className={cn('text-sm font-semibold', getScoreColor(entry.reputation_score))}>
-                      {entry.reputation_score.toFixed(1)}
+                    <Star className={cn('size-3.5', getScoreColor(entry.reputation_score ?? 0))} />
+                    <span className={cn('text-sm font-semibold', getScoreColor(entry.reputation_score ?? 0))}>
+                      {(entry.reputation_score ?? 0).toFixed(1)}
                     </span>
                   </div>
                 </td>
 
                 {/* Feedbacks */}
                 <td className="hidden px-4 py-3 text-right md:table-cell">
-                  <span className="text-sm text-muted-foreground">{entry.feedback_count}</span>
+                  <span className="text-sm text-muted-foreground">{entry.feedback_count ?? 0}</span>
                 </td>
 
                 {/* Chain */}

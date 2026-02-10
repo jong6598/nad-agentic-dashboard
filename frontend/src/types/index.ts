@@ -18,23 +18,23 @@ export interface Agent {
   agent_id: number
   chain_id: number
   owner: string
-  name: string
-  description: string
-  image: string
-  categories: string[]
+  name: string | null
+  description: string | null
+  image: string | null
+  categories: string[] | null
   x402_support: boolean
   active: boolean
-  reputation_score: number
+  reputation_score: number | null
   feedback_count: number
   created_at: string
 }
 
 /** Agent detail (single agent view) */
 export interface AgentDetail extends Agent {
-  uri: string
+  uri: string | null
   metadata: AgentMetadata | null
-  positive_feedback_count: number
-  negative_feedback_count: number
+  positive_feedback_count: number | null
+  negative_feedback_count: number | null
 }
 
 // ============================================================
@@ -48,14 +48,15 @@ export interface Feedback {
   client_address: string
   feedback_index: number
   value: number
-  value_decimals: number
-  tag1: string
-  tag2: string
-  endpoint: string
-  feedback_uri: string
-  feedback_hash: string
+  value_decimals: number | null
+  tag1: string | null
+  tag2: string | null
+  endpoint: string | null
+  feedback_uri: string | null
+  feedback_hash: string | null
   revoked: boolean
   tx_hash: string
+  block_number: number
   created_at: string
 }
 
@@ -93,12 +94,12 @@ export interface LeaderboardEntry {
   rank: number
   agent_id: number
   chain_id: number
-  name: string
-  image: string
-  categories: string[]
+  name: string | null
+  image: string | null
+  categories: string[] | null
   x402_support: boolean
-  reputation_score: number
-  feedback_count: number
+  reputation_score: number | null
+  feedback_count: number | null
   owner: string
 }
 
@@ -134,7 +135,7 @@ export interface ReputationHistoryPoint {
 export interface ReputationHistory {
   agent_id: number
   chain_id: number
-  current_score: number
+  current_score: number | null
   history: ReputationHistoryPoint[]
   feedbacks: Feedback[]
 }

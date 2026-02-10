@@ -107,7 +107,7 @@ export function HoloCard({ agent }: HoloCardProps) {
       className: 'border-cyan-accent/40 bg-cyan-accent/10 text-cyan-accent',
     })
   }
-  if (agent.reputation_score >= 4.5) {
+  if ((agent.reputation_score ?? 0) >= 4.5) {
     tags.push({
       label: 'High Score',
       icon: <Zap className="size-3" />,
@@ -201,8 +201,8 @@ export function HoloCard({ agent }: HoloCardProps) {
           <div className="relative h-48 w-full overflow-hidden bg-gradient-to-b from-primary/20 to-transparent">
             {agent.image ? (
               <img
-                src={agent.image}
-                alt={agent.name}
+                src={agent.image ?? undefined}
+                alt={agent.name ?? undefined}
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -247,11 +247,11 @@ export function HoloCard({ agent }: HoloCardProps) {
 
             {/* Reputation Score */}
             <div className="flex items-center gap-3">
-              <span className={cn('text-3xl font-bold tabular-nums', getScoreColor(agent.reputation_score))}>
-                {agent.reputation_score.toFixed(1)}
+              <span className={cn('text-3xl font-bold tabular-nums', getScoreColor(agent.reputation_score ?? 0))}>
+                {(agent.reputation_score ?? 0).toFixed(1)}
               </span>
               <div className="space-y-1">
-                <StarRating score={agent.reputation_score} />
+                <StarRating score={agent.reputation_score ?? 0} />
                 <p className="text-xs text-muted-foreground">
                   {agent.feedback_count} feedback{agent.feedback_count !== 1 ? 's' : ''}
                 </p>

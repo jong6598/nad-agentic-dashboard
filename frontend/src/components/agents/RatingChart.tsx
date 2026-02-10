@@ -110,7 +110,7 @@ export function RatingChart({ agentId, chainId }: RatingChartProps) {
           <h3 className="text-sm font-semibold text-foreground">
             Reputation Over Time
           </h3>
-          {data?.current_score !== undefined && (
+          {data?.current_score != null && (
             <span className="ml-2 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
               {data.current_score.toFixed(2)}
             </span>

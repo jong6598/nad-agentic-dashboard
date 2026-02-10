@@ -199,7 +199,7 @@ export default function AgentDetailPage({
             <div className="rounded-lg border border-border/30 bg-card/40 p-3 text-center">
               <p className="text-xs text-muted-foreground">Score</p>
               <p className="mt-1 text-xl font-bold tabular-nums text-foreground">
-                {agent.reputation_score.toFixed(1)}
+                {(agent.reputation_score ?? 0).toFixed(1)}
               </p>
             </div>
             <div className="rounded-lg border border-border/30 bg-card/40 p-3 text-center">
@@ -211,13 +211,13 @@ export default function AgentDetailPage({
             <div className="rounded-lg border border-border/30 bg-card/40 p-3 text-center">
               <p className="text-xs text-muted-foreground">Positive</p>
               <p className="mt-1 text-xl font-bold tabular-nums text-green-400">
-                {agent.positive_feedback_count}
+                {agent.positive_feedback_count ?? 0}
               </p>
             </div>
             <div className="rounded-lg border border-border/30 bg-card/40 p-3 text-center">
               <p className="text-xs text-muted-foreground">Negative</p>
               <p className="mt-1 text-xl font-bold tabular-nums text-red-400">
-                {agent.negative_feedback_count}
+                {agent.negative_feedback_count ?? 0}
               </p>
             </div>
           </div>
