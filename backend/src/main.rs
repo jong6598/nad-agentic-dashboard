@@ -76,12 +76,17 @@ async fn main() {
 
     tracing::info!("Server listening on {addr}");
 
-    // Spawn the indexer loop as a background task
-    let indexer_pool = pool.clone();
-    tokio::spawn(async move {
-        tracing::info!("Indexer background task started");
-        indexer::run_indexer(indexer_pool).await;
-    });
+    // Spawn the indexer loop only when ENABLE_INDEXER=true (production)
+    let enable_indexer = std::env::var("ENABLE_INDEXER").unwrap_or_default() == "true";
+    if enable_indexer {
+        let indexer_pool = pool.clone();
+        tokio::spawn(async move {
+            tracing::info!("Indexer background task started");
+            indexer::run_indexer(indexer_pool).await;
+        });
+    } else {
+        tracing::info!("Indexer disabled (set ENABLE_INDEXER=true to enable)");
+    }
 
     // Run the API server (blocks until shutdown)
     axum::serve(listener, app)
