@@ -27,7 +27,7 @@ pub async fn index_reputation_events(
     chain: &ChainConfig,
     from_block: u64,
     to_block: u64,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let filter = Filter::new()
         .address(chain.reputation_address)
         .from_block(from_block)

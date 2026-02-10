@@ -34,14 +34,14 @@ pub type HttpProvider = alloy::providers::fillers::FillProvider<
 >;
 
 /// Create an alloy HTTP provider for the given chain config.
-pub fn create_provider(config: &ChainConfig) -> Result<HttpProvider, Box<dyn std::error::Error>> {
+pub fn create_provider(config: &ChainConfig) -> Result<HttpProvider, Box<dyn std::error::Error + Send + Sync>> {
     let url = config.rpc_url.parse()?;
     let provider = ProviderBuilder::new().connect_http(url);
     Ok(provider)
 }
 
 /// Get the latest block number from the RPC provider.
-pub async fn get_latest_block(provider: &HttpProvider) -> Result<u64, Box<dyn std::error::Error>> {
+pub async fn get_latest_block(provider: &HttpProvider) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
     let block_number = provider.get_block_number().await?;
     Ok(block_number)
 }
@@ -51,7 +51,7 @@ pub async fn get_latest_block(provider: &HttpProvider) -> Result<u64, Box<dyn st
 pub async fn get_block_timestamp(
     provider: &HttpProvider,
     block_number: u64,
-) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
+) -> Result<DateTime<Utc>, Box<dyn std::error::Error + Send + Sync>> {
     let block = provider
         .get_block_by_number(BlockNumberOrTag::Number(block_number))
         .await?

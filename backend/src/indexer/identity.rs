@@ -24,7 +24,7 @@ pub async fn index_identity_events(
     chain: &ChainConfig,
     from_block: u64,
     to_block: u64,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Build filter for all identity events on the identity contract
     let filter = Filter::new()
         .address(chain.identity_address)
