@@ -34,7 +34,7 @@ pub async fn get_agents(
             a.categories,
             a.x402_support,
             a.active,
-            AVG(CASE WHEN f.revoked = false THEN f.value ELSE NULL END)::FLOAT8 AS reputation_score,
+            AVG(CASE WHEN f.revoked = false THEN f.value / POWER(10, COALESCE(f.value_decimals, 0)) ELSE NULL END)::FLOAT8 AS reputation_score,
             COUNT(CASE WHEN f.revoked = false THEN 1 ELSE NULL END) AS feedback_count,
             a.created_at
         FROM agents a
@@ -99,10 +99,10 @@ pub async fn get_agent_by_id(
             a.x402_support,
             a.active,
             a.metadata,
-            AVG(CASE WHEN f.revoked = false THEN f.value ELSE NULL END)::FLOAT8 AS reputation_score,
+            AVG(CASE WHEN f.revoked = false THEN f.value / POWER(10, COALESCE(f.value_decimals, 0)) ELSE NULL END)::FLOAT8 AS reputation_score,
             COUNT(CASE WHEN f.revoked = false THEN 1 ELSE NULL END) AS feedback_count,
-            COUNT(CASE WHEN f.revoked = false AND f.value >= 3 THEN 1 ELSE NULL END) AS positive_feedback_count,
-            COUNT(CASE WHEN f.revoked = false AND f.value < 3 THEN 1 ELSE NULL END) AS negative_feedback_count,
+            COUNT(CASE WHEN f.revoked = false AND f.value / POWER(10, COALESCE(f.value_decimals, 0)) >= 3 THEN 1 ELSE NULL END) AS positive_feedback_count,
+            COUNT(CASE WHEN f.revoked = false AND f.value / POWER(10, COALESCE(f.value_decimals, 0)) < 3 THEN 1 ELSE NULL END) AS negative_feedback_count,
             a.created_at
         FROM agents a
         LEFT JOIN feedbacks f ON a.agent_id = f.agent_id AND a.chain_id = f.chain_id

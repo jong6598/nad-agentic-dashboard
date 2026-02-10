@@ -23,14 +23,14 @@ async fn get_leaderboard(
     let entries: Vec<LeaderboardEntry> = sqlx::query_as(
         r#"
         SELECT
-            ROW_NUMBER() OVER (ORDER BY AVG(CASE WHEN f.revoked = false THEN f.value ELSE NULL END) DESC NULLS LAST) AS rank,
+            ROW_NUMBER() OVER (ORDER BY AVG(CASE WHEN f.revoked = false THEN f.value / POWER(10, COALESCE(f.value_decimals, 0)) ELSE NULL END) DESC NULLS LAST) AS rank,
             a.agent_id,
             a.chain_id,
             a.name,
             a.image,
             a.categories,
             a.x402_support,
-            AVG(CASE WHEN f.revoked = false THEN f.value ELSE NULL END)::FLOAT8 AS reputation_score,
+            AVG(CASE WHEN f.revoked = false THEN f.value / POWER(10, COALESCE(f.value_decimals, 0)) ELSE NULL END)::FLOAT8 AS reputation_score,
             COUNT(CASE WHEN f.revoked = false THEN 1 ELSE NULL END) AS feedback_count,
             a.owner
         FROM agents a

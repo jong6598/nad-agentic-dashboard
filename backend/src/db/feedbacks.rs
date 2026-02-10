@@ -74,7 +74,7 @@ pub async fn get_reputation_history(
             r#"
             SELECT
                 DATE(created_at) AS date,
-                AVG(CASE WHEN revoked = false THEN value ELSE NULL END)::FLOAT8 AS score,
+                AVG(CASE WHEN revoked = false THEN value / POWER(10, COALESCE(value_decimals, 0)) ELSE NULL END)::FLOAT8 AS score,
                 COUNT(CASE WHEN revoked = false THEN 1 ELSE NULL END) AS feedback_count
             FROM feedbacks
             WHERE agent_id = $1 AND chain_id = $2
@@ -94,7 +94,7 @@ pub async fn get_reputation_history(
             r#"
             SELECT
                 DATE(created_at) AS date,
-                AVG(CASE WHEN revoked = false THEN value ELSE NULL END)::FLOAT8 AS score,
+                AVG(CASE WHEN revoked = false THEN value / POWER(10, COALESCE(value_decimals, 0)) ELSE NULL END)::FLOAT8 AS score,
                 COUNT(CASE WHEN revoked = false THEN 1 ELSE NULL END) AS feedback_count
             FROM feedbacks
             WHERE agent_id = $1 AND chain_id = $2

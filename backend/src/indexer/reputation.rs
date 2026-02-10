@@ -156,6 +156,10 @@ pub async fn index_reputation_events(
                         );
                     }
 
+                    // Compute normalized value for activity display
+                    let normalized_value = value_raw as f64
+                        / 10f64.powi(value_decimals);
+
                     // Insert activity
                     let activity = NewActivity {
                         agent_id,
@@ -164,6 +168,8 @@ pub async fn index_reputation_events(
                         event_data: Some(serde_json::json!({
                             "client": client,
                             "feedback_index": feedback_index,
+                            "value": normalized_value,
+                            "value_decimals": value_decimals,
                             "tag1": tag1,
                             "tag2": tag2,
                             "endpoint": endpoint,
