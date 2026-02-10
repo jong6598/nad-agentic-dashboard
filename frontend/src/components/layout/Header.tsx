@@ -7,7 +7,6 @@ import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
 import { ConnectButton } from '@/components/wallet/ConnectButton'
-import { ChainSwitcher } from '@/components/wallet/ChainSwitcher'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
@@ -50,7 +49,6 @@ export function Header() {
 
         {/* Right side: wallet + mobile menu */}
         <div className="flex items-center gap-2">
-          <ChainSwitcher />
           <ConnectButton />
 
           {/* Mobile hamburger */}
