@@ -1,11 +1,9 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useAgents } from '@/hooks/useAgents'
 import { AgentCard } from '@/components/agents/AgentCard'
-import { SearchBar } from '@/components/agents/SearchBar'
-import { CategoryFilter } from '@/components/agents/CategoryFilter'
-import { ChainFilter } from '@/components/agents/ChainFilter'
+import { AgentBrowseTable } from '@/components/agents/AgentBrowseTable'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Agent } from '@/types'
 
@@ -32,7 +30,7 @@ function AgentCardSkeleton() {
   )
 }
 
-function AgentSection({
+function AgentColumn({
   title,
   agents,
   isLoading,
@@ -41,71 +39,48 @@ function AgentSection({
   agents: Agent[]
   isLoading: boolean
 }) {
-  if (isLoading) {
-    return (
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-foreground">{title}</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <AgentCardSkeleton key={i} />
-          ))}
-        </div>
-      </section>
-    )
-  }
-
-  if (agents.length === 0) return null
-
   return (
-    <section>
-      <h2 className="mb-4 text-lg font-semibold text-foreground">{title}</h2>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {agents.map((agent) => (
-          <AgentCard key={`${agent.chain_id}-${agent.agent_id}`} agent={agent} />
-        ))}
+    <div className="min-w-0">
+      <h3 className="mb-2 text-sm font-semibold text-foreground">{title}</h3>
+      <div className="flex flex-col gap-2">
+        {isLoading
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <AgentCardSkeleton key={i} />
+            ))
+          : agents.map((agent) => (
+              <AgentCard key={`${agent.chain_id}-${agent.agent_id}`} agent={agent} />
+            ))}
       </div>
-    </section>
+    </div>
   )
 }
 
 export default function AgentsPage() {
-  const [search, setSearch] = useState('')
-  const [category, setCategory] = useState('')
-  const [chainId, setChainId] = useState<number | undefined>(undefined)
-
-  // Fetch agents with score sort for "Top Scored"
+  // Fetch agents for card sections (no filters — always show global top)
   const { data: scoreData, isLoading: isLoadingScore } = useAgents({
     sort: 'score',
-    search: search || undefined,
-    category: category || undefined,
-    chain_id: chainId,
     limit: 18,
   })
 
-  // Fetch agents with recent sort for "Recently Deployed"
   const { data: recentData, isLoading: isLoadingRecent } = useAgents({
     sort: 'recent',
-    search: search || undefined,
-    category: category || undefined,
-    chain_id: chainId,
     limit: 18,
   })
 
-  // Derive sections from the data
+  // Derive sections from the data — 3 cards each
   const topScored = useMemo(() => {
-    return (scoreData?.agents || []).slice(0, 6)
+    return (scoreData?.agents || []).slice(0, 3)
   }, [scoreData])
 
   const recentlyDeployed = useMemo(() => {
-    return (recentData?.agents || []).slice(0, 6)
+    return (recentData?.agents || []).slice(0, 3)
   }, [recentData])
 
-  // "Recent Reputation" — agents from score data sorted by feedback count (as proxy for recent reputation activity)
   const recentReputation = useMemo(() => {
     const agents = [...(scoreData?.agents || [])]
     return agents
       .sort((a, b) => b.feedback_count - a.feedback_count)
-      .slice(0, 6)
+      .slice(0, 3)
   }, [scoreData])
 
   const isLoading = isLoadingScore || isLoadingRecent
@@ -123,37 +98,27 @@ export default function AgentsPage() {
         </p>
       </section>
 
-      {/* Filters */}
-      <section className="space-y-4">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <SearchBar
-            value={search}
-            onChange={setSearch}
-            className="w-full sm:max-w-xs"
-          />
-          <ChainFilter selected={chainId} onSelect={setChainId} />
-        </div>
-        <CategoryFilter selected={category} onSelect={setCategory} />
-      </section>
-
-      {/* Agent Sections */}
-      <div className="space-y-10">
-        <AgentSection
+      {/* Three sections side by side */}
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <AgentColumn
           title="Top Scored"
           agents={topScored}
           isLoading={isLoading}
         />
-        <AgentSection
+        <AgentColumn
           title="Recently Deployed"
           agents={recentlyDeployed}
           isLoading={isLoading}
         />
-        <AgentSection
+        <AgentColumn
           title="Recent Reputation"
           agents={recentReputation}
           isLoading={isLoading}
         />
       </div>
+
+      {/* Agent Browse Table — has its own search/sort/pagination */}
+      <AgentBrowseTable />
     </div>
   )
 }
