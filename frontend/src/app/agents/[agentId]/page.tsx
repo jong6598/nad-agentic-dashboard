@@ -1,9 +1,8 @@
 'use client'
 
-import { use } from 'react'
+import { use, useState, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, ExternalLink, Copy, Check } from 'lucide-react'
-import { useState, useCallback } from 'react'
+import { ArrowLeft, Shield, Sparkles, MessageSquare, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -11,16 +10,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { useAgent } from '@/hooks/useAgent'
 import { HoloCard } from '@/components/agents/HoloCard'
-import { RatingChart } from '@/components/agents/RatingChart'
+import { BasicInfoPanel } from '@/components/agents/BasicInfoPanel'
+import { OverviewTab } from '@/components/agents/OverviewTab'
 import { IdentityActivityTab } from '@/components/agents/IdentityActivityTab'
 import { ReputationActivityTab } from '@/components/agents/ReputationActivityTab'
-import { LaborTab } from '@/components/agents/LaborTab'
-
-function getExplorerUrl(chainId: number, address: string): string {
-  if (chainId === 143) return `https://monadexplorer.com/address/${address}`
-  if (chainId === 10143) return `https://testnet.monadexplorer.com/address/${address}`
-  return `#`
-}
 
 function getChainLabel(chainId: number): string {
   if (chainId === 143) return 'Monad Mainnet'
@@ -28,61 +21,47 @@ function getChainLabel(chainId: number): string {
   return `Chain ${chainId}`
 }
 
-function CopyableAddress({ address, chainId }: { address: string; chainId: number }) {
-  const [copied, setCopied] = useState(false)
+function isNewbie(createdAt: string): boolean {
+  const created = new Date(createdAt)
+  const now = new Date()
+  const diffDays = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24)
+  return diffDays <= 7
+}
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(address)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }, [address])
-
-  return (
-    <div className="flex items-center gap-2">
-      <a
-        href={getExplorerUrl(chainId, address)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="font-mono text-sm text-primary/80 hover:text-primary transition-colors"
-      >
-        {address}
-        <ExternalLink className="ml-1 inline size-3" />
-      </a>
-      <button
-        onClick={handleCopy}
-        className="text-muted-foreground hover:text-foreground transition-colors"
-        title="Copy address"
-      >
-        {copied ? <Check className="size-3.5 text-green-400" /> : <Copy className="size-3.5" />}
-      </button>
-    </div>
-  )
+function formatTimeAgo(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  return `${days}d ago`
 }
 
 function LoadingSkeleton() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Back button skeleton */}
-      <Skeleton className="mb-8 h-9 w-36" />
+      <Skeleton className="mb-6 h-9 w-36" />
 
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[400px_1fr]">
-        {/* HoloCard skeleton */}
-        <div className="flex justify-center lg:sticky lg:top-24 lg:self-start">
-          <Skeleton className="h-[480px] w-full max-w-[380px] rounded-2xl" />
-        </div>
-
-        {/* Info panel skeleton */}
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-64" />
-          <Skeleton className="h-4 w-96" />
-          <div className="flex gap-2">
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-6 w-20" />
-          </div>
-          <Skeleton className="h-56 w-full rounded-xl" />
-          <Skeleton className="h-64 w-full rounded-xl" />
+      {/* Header skeleton */}
+      <div className="mb-6 space-y-3">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-4 w-96" />
+        <div className="flex gap-2">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-20" />
         </div>
       </div>
+
+      {/* Two-column skeleton */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
+        <Skeleton className="h-[420px] w-full rounded-2xl" />
+        <Skeleton className="h-[420px] w-full rounded-xl" />
+      </div>
+
+      {/* Tabs skeleton */}
+      <Skeleton className="mt-6 h-10 w-full max-w-md" />
+      <Skeleton className="mt-4 h-64 w-full rounded-xl" />
     </div>
   )
 }
@@ -119,6 +98,8 @@ export default function AgentDetailPage({
   params: Promise<{ agentId: string }>
 }) {
   const { agentId } = use(params)
+  const [activeTab, setActiveTab] = useState('overview')
+  const tabsRef = useRef<HTMLDivElement>(null)
 
   // Parse agentId format: "{chainId}-{agentId}" e.g. "143-1"
   const parts = agentId.split('-')
@@ -135,133 +116,153 @@ export default function AgentDetailPage({
     return <ErrorState agentId={agentId} />
   }
 
+  // Build status badges
+  const badges: { label: string; icon: React.ReactNode; className: string }[] = []
+  if (agent.active) {
+    badges.push({
+      label: 'Active',
+      icon: <Zap className="size-3" />,
+      className: 'border-green-500/30 bg-green-500/10 text-green-400',
+    })
+  }
+  if (agent.x402_support) {
+    badges.push({
+      label: 'x402',
+      icon: <Shield className="size-3" />,
+      className: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-400',
+    })
+  }
+  if (isNewbie(agent.created_at)) {
+    badges.push({
+      label: 'Newbie',
+      icon: <Sparkles className="size-3" />,
+      className: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400',
+    })
+  }
+
+  const handleSwitchToFeedback = () => {
+    setActiveTab('feedback')
+    tabsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Back button */}
       <Link href="/agents">
-        <Button variant="ghost" size="sm" className="mb-8 gap-2 text-muted-foreground hover:text-foreground">
+        <Button variant="ghost" size="sm" className="mb-6 gap-2 text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-4" />
           Back to Agents
         </Button>
       </Link>
 
-      {/* Two-column layout */}
-      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[400px_1fr]">
-        {/* Left column: HoloCard (sticky on desktop) */}
-        <div className="flex justify-center lg:sticky lg:top-24 lg:self-start">
+      {/* Agent Header */}
+      <div className="mb-6 space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
+            {agent.name || `Agent #${agent.agent_id}`}
+          </h1>
+          <Badge
+            variant="outline"
+            className={cn(
+              'text-xs',
+              agent.chain_id === 143
+                ? 'border-green-500/30 bg-green-500/10 text-green-400'
+                : 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400',
+            )}
+          >
+            {getChainLabel(agent.chain_id)}
+          </Badge>
+          {badges.map((b) => (
+            <Badge key={b.label} variant="outline" className={cn('text-xs gap-1', b.className)}>
+              {b.icon}
+              {b.label}
+            </Badge>
+          ))}
+        </div>
+        {agent.description && (
+          <p className="text-sm text-muted-foreground max-w-3xl">
+            {agent.description}
+          </p>
+        )}
+        <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1">
+            <MessageSquare className="size-3" />
+            {agent.feedback_count} feedback{agent.feedback_count !== 1 ? 's' : ''}
+          </span>
+          <span className="h-3 w-px bg-border/50" />
+          <span>Last active {formatTimeAgo(agent.created_at)}</span>
+        </div>
+      </div>
+
+      {/* Two-column: HoloCard + Basic Info */}
+      <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr]">
+        {/* Left: HoloCard */}
+        <div className="flex justify-center lg:justify-start">
           <HoloCard agent={agent} />
         </div>
 
-        {/* Right column: Info + Tabs */}
-        <div className="min-w-0 space-y-6">
-          {/* Agent Header Info */}
-          <div className="space-y-3">
-            <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
-              {agent.name || `Agent #${agent.agent_id}`}
-            </h1>
-            {agent.description && (
-              <p className="text-base text-muted-foreground">
-                {agent.description}
-              </p>
-            )}
-          </div>
+        {/* Right: Basic Information Panel */}
+        <BasicInfoPanel agent={agent} />
+      </div>
 
-          {/* Metadata row */}
-          <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border/30 bg-card/40 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Chain:</span>
-              <Badge
-                variant="outline"
-                className={cn(
-                  'text-xs',
-                  agent.chain_id === 143
-                    ? 'border-green-500/30 bg-green-500/10 text-green-400'
-                    : 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400',
-                )}
-              >
-                {getChainLabel(agent.chain_id)}
-              </Badge>
-            </div>
-            <div className="hidden h-4 w-px bg-border/50 sm:block" />
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Agent ID:</span>
-              <span className="font-mono text-sm text-foreground">#{agent.agent_id}</span>
-            </div>
-            <div className="hidden h-4 w-px bg-border/50 sm:block" />
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-muted-foreground">Owner:</span>
-              <CopyableAddress address={agent.owner} chainId={agent.chain_id} />
-            </div>
-          </div>
+      {/* Tabs */}
+      <div ref={tabsRef}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="overview">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="feedback" className="gap-1">
+              Feedback
+              {agent.feedback_count > 0 && (
+                <span className="ml-1 rounded-full bg-primary/20 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
+                  {agent.feedback_count}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="identity">
+              Identity
+            </TabsTrigger>
+            <TabsTrigger value="metadata">
+              Metadata
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Quick stats */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <div className="rounded-lg border border-border/30 bg-card/40 p-3 text-center">
-              <p className="text-xs text-muted-foreground">Score</p>
-              <p className="mt-1 text-xl font-bold tabular-nums text-foreground">
-                {(agent.reputation_score ?? 0).toFixed(1)}
-              </p>
+          <TabsContent value="overview">
+            <OverviewTab
+              agent={agent}
+              agentId={agentId}
+              chainId={chainId}
+              agentNumericId={agentNumericId}
+              onSwitchToFeedback={handleSwitchToFeedback}
+            />
+          </TabsContent>
+
+          <TabsContent value="feedback">
+            <ReputationActivityTab agentId={agentId} />
+          </TabsContent>
+
+          <TabsContent value="identity">
+            <IdentityActivityTab agentId={agentId} />
+          </TabsContent>
+
+          <TabsContent value="metadata">
+            <div className="py-4">
+              {agent.metadata ? (
+                <div className="rounded-xl border border-border/50 bg-card/60 p-6">
+                  <h3 className="mb-4 text-sm font-semibold text-foreground">Raw Metadata</h3>
+                  <pre className="overflow-x-auto rounded-lg bg-muted/50 p-4 text-xs text-foreground/80 font-mono leading-relaxed">
+                    {JSON.stringify(agent.metadata, null, 2)}
+                  </pre>
+                </div>
+              ) : (
+                <div className="py-12 text-center">
+                  <p className="text-sm text-muted-foreground">No metadata available.</p>
+                </div>
+              )}
             </div>
-            <div className="rounded-lg border border-border/30 bg-card/40 p-3 text-center">
-              <p className="text-xs text-muted-foreground">Feedbacks</p>
-              <p className="mt-1 text-xl font-bold tabular-nums text-foreground">
-                {agent.feedback_count}
-              </p>
-            </div>
-            <div className="rounded-lg border border-border/30 bg-card/40 p-3 text-center">
-              <p className="text-xs text-muted-foreground">Positive</p>
-              <p className="mt-1 text-xl font-bold tabular-nums text-green-400">
-                {agent.positive_feedback_count ?? 0}
-              </p>
-            </div>
-            <div className="rounded-lg border border-border/30 bg-card/40 p-3 text-center">
-              <p className="text-xs text-muted-foreground">Negative</p>
-              <p className="mt-1 text-xl font-bold tabular-nums text-red-400">
-                {agent.negative_feedback_count ?? 0}
-              </p>
-            </div>
-          </div>
-
-          {/* URI Info */}
-          {agent.uri && (
-            <div className="rounded-lg border border-border/30 bg-card/40 p-4">
-              <p className="text-xs font-medium text-muted-foreground">Agent URI</p>
-              <p className="mt-1 break-all font-mono text-sm text-foreground/80">
-                {agent.uri}
-              </p>
-            </div>
-          )}
-
-          {/* Rating Chart */}
-          <RatingChart agentId={agentNumericId} chainId={chainId} />
-
-          {/* Activity Tabs */}
-          <Tabs defaultValue="reputation" className="w-full">
-            <TabsList className="w-full justify-start">
-              <TabsTrigger value="identity" className="gap-1.5">
-                Identity
-              </TabsTrigger>
-              <TabsTrigger value="reputation" className="gap-1.5">
-                Reputation
-              </TabsTrigger>
-              <TabsTrigger value="labor" className="gap-1.5">
-                Labor
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="identity">
-              <IdentityActivityTab agentId={agentId} />
-            </TabsContent>
-
-            <TabsContent value="reputation">
-              <ReputationActivityTab agentId={agentId} />
-            </TabsContent>
-
-            <TabsContent value="labor">
-              <LaborTab />
-            </TabsContent>
-          </Tabs>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )

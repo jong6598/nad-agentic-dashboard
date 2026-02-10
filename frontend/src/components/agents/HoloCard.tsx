@@ -128,7 +128,7 @@ export function HoloCard({ agent }: HoloCardProps) {
       <div
         ref={cardRef}
         className={cn(
-          "holo-card relative w-full max-w-[380px] rounded-2xl",
+          "holo-card relative w-full max-w-[300px] rounded-2xl",
           "cursor-pointer select-none",
           "motion-safe:will-change-transform",
           // 'motion-reduce:!transform-none',
@@ -156,7 +156,7 @@ export function HoloCard({ agent }: HoloCardProps) {
         />
 
         {/* Card body */}
-        <div className="relative flex h-[480px] flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/95 backdrop-blur-sm">
+        <div className="relative flex h-[420px] flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/95 backdrop-blur-sm">
           {/* Holographic shimmer overlay */}
           <div
             className={cn(
@@ -203,7 +203,7 @@ export function HoloCard({ agent }: HoloCardProps) {
           />
 
           {/* Agent Image Section */}
-          <div className="relative h-48 w-full shrink-0 overflow-hidden bg-gradient-to-b from-primary/20 to-transparent">
+          <div className="relative h-40 w-full shrink-0 overflow-hidden bg-gradient-to-b from-primary/20 to-transparent">
             {agent.image ? (
               <img
                 src={agent.image ?? undefined}
@@ -248,7 +248,7 @@ export function HoloCard({ agent }: HoloCardProps) {
                   />
                   <span
                     className={cn(
-                      "text-3xl font-bold tabular-nums",
+                      "text-2xl font-bold tabular-nums",
                       getScoreColor(agent.reputation_score ?? 0),
                     )}
                   >
