@@ -79,12 +79,25 @@ async fn main() {
     let enable_indexer = std::env::var("ENABLE_INDEXER").unwrap_or_default() == "true";
     let bg_pool = pool.clone();
     tokio::spawn(async move {
-        tracing::info!("Running migrations...");
-        sqlx::migrate!("./migrations")
-            .run(&bg_pool)
-            .await
-            .expect("Failed to run migrations");
-        tracing::info!("Migrations applied successfully");
+        // Retry migrations up to 5 times with backoff (handles connection pool contention during deploys)
+        let max_retries = 5;
+        for attempt in 1..=max_retries {
+            tracing::info!("Running migrations (attempt {}/{})", attempt, max_retries);
+            match sqlx::migrate!("./migrations").run(&bg_pool).await {
+                Ok(_) => {
+                    tracing::info!("Migrations applied successfully");
+                    break;
+                }
+                Err(e) if attempt < max_retries => {
+                    tracing::warn!("Migration attempt {} failed: {:?} — retrying in {}s", attempt, e, attempt * 5);
+                    tokio::time::sleep(std::time::Duration::from_secs(attempt as u64 * 5)).await;
+                }
+                Err(e) => {
+                    tracing::error!("Migration failed after {} attempts: {:?}", max_retries, e);
+                    return;
+                }
+            }
+        }
 
         ready.store(true, Ordering::Release);
         tracing::info!("Database ready — accepting API requests");
