@@ -15,8 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NAD-8004 Dashboard",
-  description: "Agent Identity & Reputation Dashboard on Monad",
+  title: "Agentic Dashboard",
+  description:
+    "Discover, evaluate, and track AI agents on Monad. Aggregates ERC-8004 identity & reputation, x402 payment protocols, and on-chain agentic activity in one place.",
 };
 
 export default function RootLayout({

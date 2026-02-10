@@ -94,11 +94,11 @@ export default function AgentsPage() {
       {/* Hero Banner */}
       <section className="py-8 text-center sm:py-12">
         <h1 className="text-gradient-glow text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-          Discover AI Agents on Monad
+          Agentic Dashboard
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-sm text-muted-foreground sm:text-base">
-          Explore, evaluate, and interact with EIP-8004 registered agents.
-          View reputation scores, service categories, and on-chain activity.
+          Track every on-chain AI agent in one place — ERC-8004 identity & reputation,
+          x402 payment activity, and real-time agentic data across Monad.
         </p>
       </section>
 

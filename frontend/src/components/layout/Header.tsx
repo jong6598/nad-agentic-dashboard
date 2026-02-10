@@ -25,7 +25,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
           <span className="text-gradient-violet text-xl font-bold tracking-tight">
-            NAD-8004
+            Agentic Dashboard
           </span>
         </Link>
 
