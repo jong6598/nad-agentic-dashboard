@@ -55,7 +55,7 @@ async fn index_chain(pool: &PgPool, chain: &ChainConfig) -> Result<(), Box<dyn s
     let identity_addr = chain.identity_address.to_string();
     let identity_last = crate::db::indexer_state::get_last_block(pool, chain.chain_id, &identity_addr)
         .await?
-        .unwrap_or(0);
+        .unwrap_or(chain.start_block as i64 - 1);
 
     if identity_last < latest_block as i64 {
         let from = (identity_last + 1) as u64;
@@ -92,7 +92,7 @@ async fn index_chain(pool: &PgPool, chain: &ChainConfig) -> Result<(), Box<dyn s
     let reputation_last =
         crate::db::indexer_state::get_last_block(pool, chain.chain_id, &reputation_addr)
             .await?
-            .unwrap_or(0);
+            .unwrap_or(chain.start_block as i64 - 1);
 
     if reputation_last < latest_block as i64 {
         let from = (reputation_last + 1) as u64;

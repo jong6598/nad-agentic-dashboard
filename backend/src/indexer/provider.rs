@@ -8,6 +8,8 @@ pub struct ChainConfig {
     pub rpc_url: String,
     pub identity_address: Address,
     pub reputation_address: Address,
+    /// Block number where the contracts were deployed. Indexer starts from here.
+    pub start_block: u64,
 }
 
 /// The alloy HTTP provider type returned by ProviderBuilder::new().connect_http().
@@ -70,6 +72,7 @@ pub fn get_chain_configs() -> Vec<ChainConfig> {
             reputation_address: "0x8004BAa17C55a88189AE136b182e5fdA19dE9b63"
                 .parse::<Address>()
                 .expect("Invalid mainnet reputation address"),
+            start_block: 52_952_790,
         });
     }
 
@@ -86,6 +89,7 @@ pub fn get_chain_configs() -> Vec<ChainConfig> {
             reputation_address: "0x8004B663056A597Dffe9eCcC1965A193B7388713"
                 .parse::<Address>()
                 .expect("Invalid testnet reputation address"),
+            start_block: 10_391_697,
         });
     }
 
