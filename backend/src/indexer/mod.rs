@@ -191,6 +191,26 @@ async fn index_contract_parallel(
         return Ok(None);
     }
 
+    // If only 1 batch (near tip), run directly without spawning tasks
+    if batches.len() == 1 {
+        let (from, to) = batches[0];
+        tracing::info!(
+            chain_id = chain.chain_id,
+            "Indexing {} events blocks {} - {}",
+            contract_name, from, to
+        );
+        let prov = provider::create_provider(chain)?;
+        match contract_type {
+            ContractType::Identity => {
+                identity::index_identity_events(pool, &prov, chain, from, to).await?;
+            }
+            ContractType::Reputation => {
+                reputation::index_reputation_events(pool, &prov, chain, from, to).await?;
+            }
+        }
+        return Ok(Some(to as i64));
+    }
+
     let total_from = batches.first().unwrap().0;
     let total_to = batches.last().unwrap().1;
     tracing::info!(
