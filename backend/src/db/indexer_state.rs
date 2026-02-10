@@ -28,18 +28,31 @@ pub async fn update_last_block(
     contract_address: &str,
     block_number: i64,
 ) -> Result<(), sqlx::Error> {
+    update_last_block_with_name(pool, chain_id, contract_address, block_number, None).await
+}
+
+/// Upsert the last indexed block number cursor with a contract name label.
+pub async fn update_last_block_with_name(
+    pool: &PgPool,
+    chain_id: i32,
+    contract_address: &str,
+    block_number: i64,
+    contract_name: Option<&str>,
+) -> Result<(), sqlx::Error> {
     sqlx::query(
         r#"
-        INSERT INTO indexer_state (chain_id, contract_address, last_block, updated_at)
-        VALUES ($1, $2, $3, NOW())
+        INSERT INTO indexer_state (chain_id, contract_address, last_block, contract_name, updated_at)
+        VALUES ($1, $2, $3, $4, NOW())
         ON CONFLICT (chain_id, contract_address) DO UPDATE SET
             last_block = EXCLUDED.last_block,
+            contract_name = COALESCE(EXCLUDED.contract_name, indexer_state.contract_name),
             updated_at = NOW()
         "#,
     )
     .bind(chain_id)
     .bind(contract_address)
     .bind(block_number)
+    .bind(contract_name)
     .execute(pool)
     .await?;
 

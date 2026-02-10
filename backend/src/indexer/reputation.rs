@@ -10,25 +10,12 @@ use super::provider::{ChainConfig, HttpProvider};
 use crate::db;
 use crate::types::{NewActivity, NewFeedback as NewFeedbackDb};
 
-// Define ReputationRegistry events using alloy's sol! macro.
-// Note: The generated `NewFeedback` struct name matches the Solidity event name.
+// Load ReputationRegistry ABI from official erc-8004 contracts.
+// The generated `NewFeedback` struct name matches the Solidity event name.
 // We import the DB type as `NewFeedbackDb` to avoid the naming conflict.
-sol! {
-    event NewFeedback(
-        uint256 indexed agentId,
-        address indexed client,
-        uint256 feedbackIndex,
-        uint256 value,
-        uint256 valueDecimals,
-        string tag1,
-        string tag2,
-        string endpoint,
-        string feedbackURI,
-        bytes32 feedbackHash
-    );
-    event FeedbackRevoked(uint256 indexed agentId, address indexed client, uint256 feedbackIndex);
-    event ResponseAppended(uint256 indexed agentId, uint256 feedbackIndex, string responseURI);
-}
+sol!(ReputationRegistry, "abi/ReputationRegistry.json");
+
+use ReputationRegistry::{NewFeedback, FeedbackRevoked, ResponseAppended};
 
 /// Index reputation events (NewFeedback, FeedbackRevoked, ResponseAppended) for a block range.
 pub async fn index_reputation_events(
@@ -82,17 +69,17 @@ pub async fn index_reputation_events(
                 Ok(decoded) => {
                     let event = &decoded.inner.data;
                     let agent_id = event.agentId.to::<u64>() as i64;
-                    let client = format!("{:#x}", event.client);
-                    let feedback_index = event.feedbackIndex.to::<u64>() as i64;
+                    let client = format!("{:#x}", event.clientAddress);
+                    let feedback_index = event.feedbackIndex as i64;
                     let value_raw = event.value;
-                    let value_decimals = event.valueDecimals.to::<u32>() as i32;
+                    let value_decimals = event.valueDecimals as i32;
                     let tag1 = event.tag1.clone();
                     let tag2 = event.tag2.clone();
                     let endpoint = event.endpoint.clone();
                     let feedback_uri = event.feedbackURI.clone();
                     let feedback_hash = format!("{:#x}", event.feedbackHash);
 
-                    // Convert U256 value to BigDecimal
+                    // Convert int128 value to BigDecimal
                     let value = BigDecimal::from_str(&value_raw.to_string())
                         .unwrap_or_else(|_| BigDecimal::from(0));
 
@@ -179,8 +166,8 @@ pub async fn index_reputation_events(
                 Ok(decoded) => {
                     let event = &decoded.inner.data;
                     let agent_id = event.agentId.to::<u64>() as i64;
-                    let client = format!("{:#x}", event.client);
-                    let feedback_index = event.feedbackIndex.to::<u64>() as i64;
+                    let client = format!("{:#x}", event.clientAddress);
+                    let feedback_index = event.feedbackIndex as i64;
 
                     tracing::info!(
                         chain_id = chain.chain_id,
@@ -237,8 +224,11 @@ pub async fn index_reputation_events(
                 Ok(decoded) => {
                     let event = &decoded.inner.data;
                     let agent_id = event.agentId.to::<u64>() as i64;
-                    let feedback_index = event.feedbackIndex.to::<u64>() as i64;
+                    let client = format!("{:#x}", event.clientAddress);
+                    let feedback_index = event.feedbackIndex as i64;
+                    let responder = format!("{:#x}", event.responder);
                     let response_uri = event.responseURI.clone();
+                    let response_hash = format!("{:#x}", event.responseHash);
 
                     tracing::info!(
                         chain_id = chain.chain_id,
@@ -273,8 +263,11 @@ pub async fn index_reputation_events(
                         chain_id: chain.chain_id,
                         event_type: "ResponseAppended".to_string(),
                         event_data: Some(serde_json::json!({
+                            "client": client,
                             "feedback_index": feedback_index,
+                            "responder": responder,
                             "response_uri": response_uri,
+                            "response_hash": response_hash,
                         })),
                         block_number,
                         tx_hash: tx_hash.clone(),

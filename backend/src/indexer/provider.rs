@@ -60,7 +60,7 @@ pub fn get_chain_configs() -> Vec<ChainConfig> {
         .unwrap_or_else(|_| "true".to_string());
 
     if index_mainnet != "false" {
-        let rpc_url = std::env::var("MONAD_MAINNET_RPC_URL")
+        let rpc_url = std::env::var("MONAD_MAINNET_RPC")
             .unwrap_or_else(|_| "https://rpc.monad.xyz".to_string());
 
         configs.push(ChainConfig {
@@ -77,7 +77,7 @@ pub fn get_chain_configs() -> Vec<ChainConfig> {
     }
 
     if index_testnet != "false" {
-        let rpc_url = std::env::var("MONAD_TESTNET_RPC_URL")
+        let rpc_url = std::env::var("MONAD_TESTNET_RPC")
             .unwrap_or_else(|_| "https://testnet-rpc.monad.xyz".to_string());
 
         configs.push(ChainConfig {

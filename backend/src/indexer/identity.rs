@@ -9,12 +9,10 @@ use super::provider::{ChainConfig, HttpProvider};
 use crate::db;
 use crate::types::{NewActivity, NewAgent};
 
-// Define IdentityRegistry events using alloy's sol! macro
-sol! {
-    event Registered(uint256 indexed agentId, address indexed owner, string uri);
-    event URIUpdated(uint256 indexed agentId, string oldURI, string newURI);
-    event MetadataSet(uint256 indexed agentId, string key, string value);
-}
+// Load IdentityRegistry ABI from official erc-8004 contracts
+sol!(IdentityRegistry, "abi/IdentityRegistry.json");
+
+use IdentityRegistry::{Registered, URIUpdated, MetadataSet};
 
 /// Index identity events (Registered, URIUpdated, MetadataSet) for a block range.
 pub async fn index_identity_events(
@@ -68,7 +66,7 @@ pub async fn index_identity_events(
                     let event = &decoded.inner.data;
                     let agent_id = event.agentId.to::<u64>() as i64;
                     let owner = format!("{:#x}", event.owner);
-                    let uri = event.uri.clone();
+                    let uri = event.agentURI.clone();
 
                     tracing::info!(
                         chain_id = chain.chain_id,
@@ -144,8 +142,8 @@ pub async fn index_identity_events(
                 Ok(decoded) => {
                     let event = &decoded.inner.data;
                     let agent_id = event.agentId.to::<u64>() as i64;
-                    let old_uri = event.oldURI.clone();
                     let new_uri = event.newURI.clone();
+                    let updated_by = format!("{:#x}", event.updatedBy);
 
                     tracing::info!(
                         chain_id = chain.chain_id,
@@ -180,8 +178,8 @@ pub async fn index_identity_events(
                         chain_id: chain.chain_id,
                         event_type: "URIUpdated".to_string(),
                         event_data: Some(serde_json::json!({
-                            "old_uri": old_uri,
                             "new_uri": new_uri,
+                            "updated_by": updated_by,
                         })),
                         block_number,
                         tx_hash: tx_hash.clone(),
@@ -220,8 +218,8 @@ pub async fn index_identity_events(
                 Ok(decoded) => {
                     let event = &decoded.inner.data;
                     let agent_id = event.agentId.to::<u64>() as i64;
-                    let key = event.key.clone();
-                    let value = event.value.clone();
+                    let key = event.metadataKey.clone();
+                    let value = format!("{}", event.metadataValue);
 
                     tracing::info!(
                         chain_id = chain.chain_id,
