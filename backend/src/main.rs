@@ -99,6 +99,9 @@ async fn main() {
             }
         }
 
+        // Backfill block_timestamp for existing rows (one-time, idempotent)
+        indexer::backfill::backfill_block_timestamps(&bg_pool).await;
+
         ready.store(true, Ordering::Release);
         tracing::info!("Database ready — accepting API requests");
 

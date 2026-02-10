@@ -1,3 +1,4 @@
+pub mod backfill;
 pub mod identity;
 pub mod metadata;
 pub mod provider;
