@@ -68,7 +68,7 @@ function LoadingSkeleton() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[400px_1fr]">
         {/* HoloCard skeleton */}
         <div className="flex justify-center lg:sticky lg:top-24 lg:self-start">
-          <Skeleton className="h-[520px] w-full max-w-[380px] rounded-2xl" />
+          <Skeleton className="h-[480px] w-full max-w-[380px] rounded-2xl" />
         </div>
 
         {/* Info panel skeleton */}

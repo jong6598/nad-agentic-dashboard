@@ -35,8 +35,9 @@ function isNewbie(createdAt: string): boolean {
 }
 
 function StarRating({ score }: { score: number }) {
-  const fullStars = Math.floor(score)
-  const partial = score - fullStars
+  const clamped = Math.min(5, Math.max(0, score))
+  const fullStars = Math.floor(clamped)
+  const partial = clamped - fullStars
   const emptyStars = 5 - fullStars - (partial > 0 ? 1 : 0)
 
   return (
@@ -151,7 +152,7 @@ export function HoloCard({ agent }: HoloCardProps) {
         />
 
         {/* Card body */}
-        <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-card/95 backdrop-blur-sm">
+        <div className="relative flex h-[480px] flex-col overflow-hidden rounded-2xl border border-border/50 bg-card/95 backdrop-blur-sm">
           {/* Holographic shimmer overlay */}
           <div
             className={cn(
@@ -198,7 +199,7 @@ export function HoloCard({ agent }: HoloCardProps) {
           />
 
           {/* Agent Image Section */}
-          <div className="relative h-48 w-full overflow-hidden bg-gradient-to-b from-primary/20 to-transparent">
+          <div className="relative h-48 w-full shrink-0 overflow-hidden bg-gradient-to-b from-primary/20 to-transparent">
             {agent.image ? (
               <img
                 src={agent.image ?? undefined}
@@ -217,65 +218,53 @@ export function HoloCard({ agent }: HoloCardProps) {
           </div>
 
           {/* Card Content */}
-          <div className="relative z-20 space-y-4 p-5">
-            {/* Agent Name */}
-            <div>
-              <h2 className="text-xl font-bold text-foreground">
-                {agent.name || `Agent #${agent.agent_id}`}
-              </h2>
-              {agent.description && (
-                <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
-                  {agent.description}
-                </p>
+          <div className="relative z-20 flex flex-1 flex-col overflow-hidden p-5">
+            {/* Top section: name, description, categories, score, tags */}
+            <div className="space-y-3">
+              {/* Agent Name */}
+              <div>
+                <h2 className="truncate text-xl font-bold text-foreground">
+                  {agent.name || `Agent #${agent.agent_id}`}
+                </h2>
+                {agent.description && (
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                    {agent.description}
+                  </p>
+                )}
+              </div>
+
+              {/* Reputation Score */}
+              <div className="flex items-center gap-3">
+                <span className={cn('text-3xl font-bold tabular-nums', getScoreColor(agent.reputation_score ?? 0))}>
+                  {(agent.reputation_score ?? 0).toFixed(1)}
+                </span>
+                <div className="space-y-1">
+                  <StarRating score={agent.reputation_score ?? 0} />
+                  <p className="text-xs text-muted-foreground">
+                    {agent.feedback_count} feedback{agent.feedback_count !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+
+              {/* Tags Row */}
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {tags.map((tag) => (
+                    <Badge
+                      key={tag.label}
+                      variant="outline"
+                      className={cn('gap-1 text-xs px-2 py-0.5', tag.className)}
+                    >
+                      {tag.icon}
+                      {tag.label}
+                    </Badge>
+                  ))}
+                </div>
               )}
             </div>
 
-            {/* Service Category Badges */}
-            {agent.categories && agent.categories.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {agent.categories.map((category) => (
-                  <Badge
-                    key={category}
-                    variant="secondary"
-                    className="bg-primary/10 text-primary border-primary/20 text-xs"
-                  >
-                    {category}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {/* Reputation Score */}
-            <div className="flex items-center gap-3">
-              <span className={cn('text-3xl font-bold tabular-nums', getScoreColor(agent.reputation_score ?? 0))}>
-                {(agent.reputation_score ?? 0).toFixed(1)}
-              </span>
-              <div className="space-y-1">
-                <StarRating score={agent.reputation_score ?? 0} />
-                <p className="text-xs text-muted-foreground">
-                  {agent.feedback_count} feedback{agent.feedback_count !== 1 ? 's' : ''}
-                </p>
-              </div>
-            </div>
-
-            {/* Tags Row */}
-            {tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag) => (
-                  <Badge
-                    key={tag.label}
-                    variant="outline"
-                    className={cn('gap-1 text-xs px-2 py-0.5', tag.className)}
-                  >
-                    {tag.icon}
-                    {tag.label}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {/* Bottom: Chain + Owner */}
-            <div className="flex items-center justify-between border-t border-border/30 pt-3">
+            {/* Bottom: Chain + Owner (pinned to bottom) */}
+            <div className="mt-auto flex items-center justify-between border-t border-border/30 pt-3">
               <Badge
                 variant="outline"
                 className={cn(
