@@ -16,8 +16,8 @@ COPY src/ src/
 COPY abi/ abi/
 COPY migrations/ migrations/
 
-# Build the real binary
-RUN cargo build --release
+# Force rebuild of the binary (touch ensures cargo sees source as changed)
+RUN touch src/main.rs && cargo build --release
 
 # ── Runtime stage ──
 FROM debian:bookworm-slim
@@ -25,6 +25,9 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y ca-certificates libssl3 && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/nad-8004-backend /usr/local/bin/nad-8004-backend
+
+# Debug: verify binary can execute and list shared library dependencies
+RUN ldd /usr/local/bin/nad-8004-backend && /usr/local/bin/nad-8004-backend --help 2>&1 || true
 
 ENV RUST_LOG=nad_8004_backend=info,tower_http=info
 
