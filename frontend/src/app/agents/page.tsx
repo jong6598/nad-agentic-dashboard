@@ -4,29 +4,33 @@ import { useMemo } from 'react'
 import { useAgents } from '@/hooks/useAgents'
 import { AgentCard } from '@/components/agents/AgentCard'
 import { AgentBrowseTable } from '@/components/agents/AgentBrowseTable'
+import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { Agent } from '@/types'
 
 function AgentCardSkeleton() {
   return (
-    <div className="rounded-xl border border-border/50 bg-card/80 p-5">
-      <div className="flex items-start gap-3">
-        <Skeleton className="size-12 rounded-full" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-3 w-full" />
-          <Skeleton className="h-3 w-2/3" />
+    <Card className="border-border/50 bg-card/80 py-0">
+      <CardContent className="flex flex-col gap-4 p-5">
+        {/* Top row: Avatar + Name + Description */}
+        <div className="flex items-start gap-3">
+          <Skeleton className="size-12 shrink-0 rounded-full" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-3 w-full" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
         </div>
-      </div>
-      <div className="mt-4 flex gap-1.5">
-        <Skeleton className="h-5 w-14 rounded-full" />
-        <Skeleton className="h-5 w-14 rounded-full" />
-      </div>
-      <div className="mt-4 flex items-center justify-between">
-        <Skeleton className="h-4 w-20" />
-        <Skeleton className="h-5 w-16 rounded-full" />
-      </div>
-    </div>
+        {/* Bottom row: Score + Chain badge */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-4 w-12" />
+            <Skeleton className="h-3 w-16" />
+          </div>
+          <Skeleton className="h-5 w-14 rounded-full" />
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
