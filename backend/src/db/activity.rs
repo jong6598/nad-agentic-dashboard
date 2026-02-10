@@ -11,13 +11,18 @@ pub async fn get_activities(
     offset: i64,
     limit: i64,
 ) -> Result<(Vec<Activity>, i64), sqlx::Error> {
+    // Map category names to actual event types stored in the DB.
+    // Frontend sends 'identity' or 'reputation', but the DB stores specific event names.
     let activities: Vec<Activity> = sqlx::query_as(
         r#"
         SELECT id, agent_id, chain_id, event_type, event_data,
                block_number, block_timestamp, tx_hash, log_index, created_at
         FROM activity_log
         WHERE agent_id = $1 AND chain_id = $2
-          AND ($3::TEXT IS NULL OR event_type = $3)
+          AND ($3::TEXT IS NULL
+            OR ($3 = 'identity' AND event_type IN ('Registered', 'URIUpdated', 'MetadataSet'))
+            OR ($3 = 'reputation' AND event_type IN ('NewFeedback', 'FeedbackRevoked', 'ResponseAppended'))
+            OR event_type = $3)
         ORDER BY block_number DESC, log_index DESC
         LIMIT $4 OFFSET $5
         "#,
@@ -35,7 +40,10 @@ pub async fn get_activities(
         SELECT COUNT(*)
         FROM activity_log
         WHERE agent_id = $1 AND chain_id = $2
-          AND ($3::TEXT IS NULL OR event_type = $3)
+          AND ($3::TEXT IS NULL
+            OR ($3 = 'identity' AND event_type IN ('Registered', 'URIUpdated', 'MetadataSet'))
+            OR ($3 = 'reputation' AND event_type IN ('NewFeedback', 'FeedbackRevoked', 'ResponseAppended'))
+            OR event_type = $3)
         "#,
     )
     .bind(agent_id)

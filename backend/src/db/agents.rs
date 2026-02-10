@@ -125,7 +125,7 @@ pub async fn upsert_agent(pool: &PgPool, agent: &NewAgent) -> Result<(), sqlx::E
         INSERT INTO agents (agent_id, chain_id, owner, uri, metadata, name, description, image, categories, x402_support, active, block_number, block_timestamp, tx_hash)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         ON CONFLICT (agent_id, chain_id) DO UPDATE SET
-            owner = EXCLUDED.owner,
+            owner = CASE WHEN EXCLUDED.owner = '' THEN agents.owner ELSE EXCLUDED.owner END,
             uri = COALESCE(EXCLUDED.uri, agents.uri),
             metadata = COALESCE(EXCLUDED.metadata, agents.metadata),
             name = COALESCE(EXCLUDED.name, agents.name),
