@@ -1,42 +1,42 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Star, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useAgents } from '@/hooks/useAgents'
-import { SearchBar } from '@/components/agents/SearchBar'
-import { ChainFilter } from '@/components/agents/ChainFilter'
-import { CategoryFilter } from '@/components/agents/CategoryFilter'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
-import type { SortOrder } from '@/types'
+import { useState } from "react";
+import Link from "next/link";
+import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { useAgents } from "@/hooks/useAgents";
+import { SearchBar } from "@/components/agents/SearchBar";
+import { ChainFilter } from "@/components/agents/ChainFilter";
+import { CategoryFilter } from "@/components/agents/CategoryFilter";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import type { SortOrder } from "@/types";
 
 function getScoreColor(score: number): string {
-  if (score >= 70) return 'text-green-400'
-  if (score >= 40) return 'text-yellow-400'
-  return 'text-red-400'
+  if (score >= 70) return "text-green-400";
+  if (score >= 40) return "text-yellow-400";
+  return "text-red-400";
 }
 
 function getChainLabel(chainId: number): string {
-  if (chainId === 143) return 'Monad'
-  if (chainId === 10143) return 'Testnet'
-  return `Chain ${chainId}`
+  if (chainId === 143) return "Monad";
+  if (chainId === 10143) return "Testnet";
+  return `Chain ${chainId}`;
 }
 
 function formatTimeAgo(dateStr: string): string {
-  const diff = Date.now() - new Date(dateStr).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 function formatAddress(addr: string): string {
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`
+  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
 function TableSkeleton({ rows }: { rows: number }) {
@@ -44,26 +44,40 @@ function TableSkeleton({ rows }: { rows: number }) {
     <>
       {Array.from({ length: rows }).map((_, i) => (
         <tr key={i} className="border-b border-border/30">
-          <td className="px-4 py-3"><Skeleton className="h-4 w-40" /></td>
-          <td className="hidden px-4 py-3 sm:table-cell"><Skeleton className="h-5 w-16 rounded-full" /></td>
-          <td className="px-4 py-3"><Skeleton className="h-4 w-10" /></td>
-          <td className="hidden px-4 py-3 md:table-cell"><Skeleton className="h-4 w-8" /></td>
-          <td className="hidden px-4 py-3 lg:table-cell"><Skeleton className="h-4 w-24" /></td>
-          <td className="hidden px-4 py-3 lg:table-cell"><Skeleton className="h-4 w-12" /></td>
-          <td className="hidden px-4 py-3 xl:table-cell"><Skeleton className="h-4 w-16" /></td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-40" />
+          </td>
+          <td className="hidden px-4 py-3 sm:table-cell">
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </td>
+          <td className="px-4 py-3">
+            <Skeleton className="h-4 w-10" />
+          </td>
+          <td className="hidden px-4 py-3 md:table-cell">
+            <Skeleton className="h-4 w-8" />
+          </td>
+          <td className="hidden px-4 py-3 lg:table-cell">
+            <Skeleton className="h-4 w-24" />
+          </td>
+          <td className="hidden px-4 py-3 lg:table-cell">
+            <Skeleton className="h-4 w-12" />
+          </td>
+          <td className="hidden px-4 py-3 xl:table-cell">
+            <Skeleton className="h-4 w-16" />
+          </td>
         </tr>
       ))}
     </>
-  )
+  );
 }
 
 export function AgentBrowseTable() {
-  const [page, setPage] = useState(1)
-  const [limit, setLimit] = useState(10)
-  const [sort, setSort] = useState<SortOrder>('recent')
-  const [search, setSearch] = useState('')
-  const [chainId, setChainId] = useState<number | undefined>(143)
-  const [category, setCategory] = useState('')
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [sort, setSort] = useState<SortOrder>("recent");
+  const [search, setSearch] = useState("");
+  const [chainId, setChainId] = useState<number | undefined>(143);
+  const [category, setCategory] = useState("");
 
   const { data, isLoading } = useAgents({
     sort,
@@ -72,43 +86,59 @@ export function AgentBrowseTable() {
     search: search || undefined,
     chain_id: chainId,
     category: category || undefined,
-  })
+  });
 
-  const agents = data?.agents ?? []
-  const total = data?.total ?? 0
-  const totalPages = Math.ceil(total / limit)
-  const start = (page - 1) * limit + 1
-  const end = Math.min(page * limit, total)
+  const agents = data?.agents ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.ceil(total / limit);
+  const start = (page - 1) * limit + 1;
+  const end = Math.min(page * limit, total);
 
   // Generate page numbers to show
-  const pageNumbers: number[] = []
-  const maxVisible = 5
-  let startPage = Math.max(1, page - Math.floor(maxVisible / 2))
-  const endPage = Math.min(totalPages, startPage + maxVisible - 1)
+  const pageNumbers: number[] = [];
+  const maxVisible = 5;
+  let startPage = Math.max(1, page - Math.floor(maxVisible / 2));
+  const endPage = Math.min(totalPages, startPage + maxVisible - 1);
   if (endPage - startPage + 1 < maxVisible) {
-    startPage = Math.max(1, endPage - maxVisible + 1)
+    startPage = Math.max(1, endPage - maxVisible + 1);
   }
   for (let i = startPage; i <= endPage; i++) {
-    pageNumbers.push(i)
+    pageNumbers.push(i);
   }
 
   return (
     <section>
-      <h2 className="mb-1 text-lg font-semibold text-foreground">Agent Registry</h2>
-      <p className="mb-4 text-sm text-muted-foreground">Browse and search all registered agents</p>
+      <h2 className="mb-1 text-lg font-semibold text-foreground">
+        Agent Registry
+      </h2>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Browse and search all registered agents
+      </p>
 
       {/* Search + Sort */}
       <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <SearchBar
           value={search}
-          onChange={(v) => { setSearch(v); setPage(1) }}
+          onChange={(v) => {
+            setSearch(v);
+            setPage(1);
+          }}
           className="w-full sm:max-w-xs"
         />
         <div className="flex items-center gap-3">
-          <ChainFilter selected={chainId} onSelect={(v) => { setChainId(v); setPage(1) }} />
+          <ChainFilter
+            selected={chainId}
+            onSelect={(v) => {
+              setChainId(v);
+              setPage(1);
+            }}
+          />
           <select
             value={sort}
-            onChange={(e) => { setSort(e.target.value as SortOrder); setPage(1) }}
+            onChange={(e) => {
+              setSort(e.target.value as SortOrder);
+              setPage(1);
+            }}
             className="rounded-lg border border-border/50 bg-card/80 px-3 py-1.5 text-sm text-foreground outline-none focus:border-primary/50"
           >
             <option value="recent">Newest</option>
@@ -120,7 +150,13 @@ export function AgentBrowseTable() {
 
       {/* Category Filter */}
       <div className="mb-4">
-        <CategoryFilter selected={category} onSelect={(v) => { setCategory(v); setPage(1) }} />
+        <CategoryFilter
+          selected={category}
+          onSelect={(v) => {
+            setCategory(v);
+            setPage(1);
+          }}
+        />
       </div>
 
       <div className="overflow-x-auto rounded-xl border border-border/50 bg-card/40">
@@ -141,13 +177,16 @@ export function AgentBrowseTable() {
               <TableSkeleton rows={limit} />
             ) : agents.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-12 text-center text-sm text-muted-foreground">
+                <td
+                  colSpan={7}
+                  className="px-4 py-12 text-center text-sm text-muted-foreground"
+                >
                   No agents found
                 </td>
               </tr>
             ) : (
               agents.map((agent) => {
-                const agentPath = `/agents/${agent.chain_id}-${agent.agent_id}`
+                const agentPath = `/agents/${agent.chain_id}-${agent.agent_id}`;
                 return (
                   <tr
                     key={`${agent.chain_id}-${agent.agent_id}`}
@@ -155,11 +194,17 @@ export function AgentBrowseTable() {
                   >
                     {/* Name */}
                     <td className="px-4 py-3">
-                      <Link href={agentPath} className="flex items-center gap-3 transition-opacity hover:opacity-80">
+                      <Link
+                        href={agentPath}
+                        className="flex items-center gap-3 transition-opacity hover:opacity-80"
+                      >
                         <Avatar className="size-8 shrink-0 ring-1 ring-border">
-                          <AvatarImage src={agent.image ?? undefined} alt={agent.name ?? undefined} />
+                          <AvatarImage
+                            src={agent.image ?? undefined}
+                            alt={agent.name ?? undefined}
+                          />
                           <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
-                            {agent.name?.charAt(0)?.toUpperCase() || '?'}
+                            {agent.name?.charAt(0)?.toUpperCase() || "?"}
                           </AvatarFallback>
                         </Avatar>
                         <span className="truncate text-sm font-medium text-foreground">
@@ -173,10 +218,10 @@ export function AgentBrowseTable() {
                       <Badge
                         variant="outline"
                         className={cn(
-                          'text-[10px]',
+                          "text-[10px]",
                           agent.chain_id === 143
-                            ? 'border-green-500/30 bg-green-500/10 text-green-400'
-                            : 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400'
+                            ? "border-green-500/30 bg-green-500/10 text-green-400"
+                            : "border-yellow-500/30 bg-yellow-500/10 text-yellow-400",
                         )}
                       >
                         {getChainLabel(agent.chain_id)}
@@ -186,8 +231,18 @@ export function AgentBrowseTable() {
                     {/* Score */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
-                        <Star className={cn('size-3.5', getScoreColor(agent.reputation_score ?? 0))} />
-                        <span className={cn('text-sm font-semibold', getScoreColor(agent.reputation_score ?? 0))}>
+                        <Star
+                          className={cn(
+                            "size-3.5",
+                            getScoreColor(agent.reputation_score ?? 0),
+                          )}
+                        />
+                        <span
+                          className={cn(
+                            "text-sm font-semibold",
+                            getScoreColor(agent.reputation_score ?? 0),
+                          )}
+                        >
                           {(agent.reputation_score ?? 0).toFixed(1)}
                         </span>
                       </div>
@@ -195,7 +250,9 @@ export function AgentBrowseTable() {
 
                     {/* Feedback */}
                     <td className="hidden px-4 py-3 md:table-cell">
-                      <span className="text-sm text-muted-foreground">{agent.feedback_count}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {agent.feedback_count}
+                      </span>
                     </td>
 
                     {/* Owner */}
@@ -226,7 +283,7 @@ export function AgentBrowseTable() {
                       </span>
                     </td>
                   </tr>
-                )
+                );
               })
             )}
           </tbody>
@@ -237,12 +294,17 @@ export function AgentBrowseTable() {
       {total > 0 && (
         <div className="mt-4 flex flex-col items-center justify-between gap-3 sm:flex-row">
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span>Showing {start}-{end} of {total} agents</span>
+            <span>
+              Showing {start}-{end} of {total} agents
+            </span>
             <div className="flex items-center gap-1.5">
               <span>Per page:</span>
               <select
                 value={limit}
-                onChange={(e) => { setLimit(Number(e.target.value)); setPage(1) }}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
                 className="rounded border border-border/50 bg-card/80 px-2 py-0.5 text-sm text-foreground outline-none"
               >
                 <option value={10}>10</option>
@@ -266,10 +328,10 @@ export function AgentBrowseTable() {
                 key={p}
                 onClick={() => setPage(p)}
                 className={cn(
-                  'size-8 rounded-lg text-sm font-medium transition-colors',
+                  "size-8 rounded-lg text-sm font-medium transition-colors",
                   p === page
-                    ? 'bg-primary text-primary-foreground'
-                    : 'border border-border/50 bg-card/80 text-foreground hover:bg-accent/50'
+                    ? "bg-primary text-primary-foreground"
+                    : "border border-border/50 bg-card/80 text-foreground hover:bg-accent/50",
                 )}
               >
                 {p}
@@ -287,5 +349,5 @@ export function AgentBrowseTable() {
         </div>
       )}
     </section>
-  )
+  );
 }
